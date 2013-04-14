@@ -4,10 +4,12 @@ import sys
 import json
 import bz2
 
-#in retrospect, this task is like tree reconstruction given many nodes with pointers to each other
-#we could end up with many trees, of various degrees of bushiness and depth, and we have no idea which
-#elements are the roots...perhaps that approach would be better than lists of lists, which represent
-#paths to leaves from higher nodes that may or may not be roots
+#in retrospect, this task is like (not binary but b-)tree reconstruction given 
+#many nodes with pointers to children (retweet ids and ids). We could end up 
+#with many trees, of various degrees of bushiness and depth, and we have no idea 
+#which elements are the roots of each tree. But perhaps that approach would be 
+#better than lists of lists, as below, which represent paths to leaves from 
+#higher nodes that may or may not be roots. 
 
 #possibly super slow dumb way of doing this...
 def exists_anywhere(rid,d):
@@ -108,7 +110,20 @@ def ProcessTweet(tweet, diction):
     print rid
     update_dictionary(id, rid, diction)
 
-      
+def printDictionary(f, d):
+  outfile = open(f,'w')
+  keys = d.keys()
+  for k in keys:
+    mapping = d[k]
+    outfile.write(str(k))
+    outfile.write(" ->\t")
+    for listchain in mapping:
+      for elem in listchan:
+        outfile.write(str(elem))
+        outfile.write(", ")
+    outfile.write("\n\t\t | ")
+  outfile.flush()
+  outfile.close()
 
 
 def main(argv):
@@ -116,7 +131,8 @@ def main(argv):
   d = dict()
   # First argument is the data file to read.
   fnout = argv[1]
-
+  # Second argument is the data file to which to write upon completion or interruption
+  outfile = argv[2]
   # Figure out which function should open the file.
   fopen = open
   if fnout.endswith('.bz2'):
@@ -127,8 +143,11 @@ def main(argv):
     # Process every line as its own JSON tweet.
     for line in fh:
       loaded = json.loads(line)
-      ProcessTweet(loaded)
-
+      try:
+        ProcessTweet(loaded)
+      except KeyboardInterrupt:
+        printDictionary(outfile,d)
+        raise KeyboardInterrupt
 
 if __name__=='__main__':
   main(sys.argv)
