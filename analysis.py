@@ -20,6 +20,7 @@ def exists_anywhere(id,d):
           print "\nFound a continuation in a retweet chain from id: " id
           #since we need to return to this location again to update it, 
           #return a tuple to save time and spare us a second search
+          #tell us key under which id exists, which list, which element
           return (True, ids, x, y)
   print "\nDidn't find any continuation for id:" id
   return (False, -1,-1,-1)
@@ -28,10 +29,9 @@ def exists_anywhere(id,d):
 def update_key_mapping(id,rid,d):
   #already know id is a key in d
   listoflists = d[id]
-  #find where it might fit into mapping, forking an existing list of ids if needed
-  for l in listlist:
-    for item in l:
-      if item = id:
+  #rid must be appended to mapping of id as single element in its own list
+  listoflists.append([[rid]])
+        
 
 def update_dictionary(id, rid, d):
   #case I: if d has id -> id list list mapping, update the mapping
@@ -54,7 +54,9 @@ def update_dictionary(id, rid, d):
 def ProcessTweet(tweet, diction):
   # Searches for retweeted status in tweet dict's keys.
   if 'retweeted_status' in tweet.keys():
+    #is is unique id of this tweet, a retweet of a prior tweet
     id = tweet['id']
+    #rid is the unique id of the tweet that is being retweeted
     rid = tweet['retweeted_status']['id']
     print "\n---PROCESSING A RETWEET ---\n"
     print " ID: "
