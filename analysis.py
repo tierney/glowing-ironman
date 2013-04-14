@@ -9,21 +9,29 @@ def exists_anywhere(id,d):
   #double iterate over id list list for every id key to find the id
   #anywhere it might exist (we already know it is not a key)...super slow operation
   for ids in d:
-    list = d[ids]
-    for l in list:
-      for item in l:
+    listlist = d[ids]
+    max = len(listlist)
+    for x in range(max):
+      l = listlist[x]
+      max2 = len(l)
+      for y in range(max2):
+        item = l[y]
         if item = id:
-          print "\nFound a continuation in a chain for id: " id
-          return True
+          print "\nFound a continuation in a retweet chain from id: " id
+          #since we need to return to this location again to update it, 
+          #return a tuple to save time and spare us a second search
+          return (True, ids, x, y)
   print "\nDidn't find any continuation for id:" id
-  return False
+  return (False, -1,-1,-1)
 
 #check what is the mapping of id and update accordingly
 def update_key_mapping(id,rid,d):
   #already know id is a key in d
-  list = d[id]
+  listoflists = d[id]
   #find where it might fit into mapping, forking an existing list of ids if needed
-  
+  for l in listlist:
+    for item in l:
+      if item = id:
 
 def update_dictionary(id, rid, d):
   #case I: if d has id -> id list list mapping, update the mapping
@@ -31,14 +39,15 @@ def update_dictionary(id, rid, d):
     update_key_mapping(id,rid,d)
   else:
   #case II & III: if d has no id -> id list list mapping, check for existence of id anywhere else
-    if not exists_anywhere(id,d):
+    locationTuple = exists_anywhere(id,d)
+    if locationTuple[0]:
       #case II: if id exists anywhere, update the mapping, forking if need be
-      update_list_mapping(id,rid,d)
+      update_list_mapping(id,rid,d, locationTuple)
     else:
       #case III: if d has no id -> id list list mapping and it doesn't appear anywhere else
       #then add it as a new key -> id list list mapping with rid as the only element in the only list
       #to which the key maps
-      d[id]=rid
+      d[id]=([[rid]])
 
 
 
