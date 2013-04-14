@@ -4,6 +4,11 @@ import sys
 import json
 import bz2
 
+#in retrospect, this task is like tree reconstruction given many nodes with pointers to each other
+#we could end up with many trees, of various degrees of bushiness and depth, and we have no idea which
+#elements are the roots...perhaps that approach would be better than lists of lists, which represent
+#paths to leaves from higher nodes that may or may not be roots
+
 #possibly super slow dumb way of doing this...
 def exists_anywhere(rid,d):
   #double iterate over id list list for every key to find the id
@@ -30,7 +35,7 @@ def update_key_mapping(id,rid,d):
   #already know rid is a key in d
   listoflists = d[rid]
   #id must be appended to mapping of rid as single element in its own list
-  listoflists.append([[rid]])
+  listoflists.append([[id]])
         
 #given a location, go to that location and insert the retweet id either at end of an existing list
 #if possible, else as the terminal of a new list, reflecting a fork (branch) in a retweet flow
@@ -73,7 +78,6 @@ def update_dictionary(id, rid, d):
   if id in d:
     update_pushkey_mapping(id,rid,d)
     return
-
   #else
   #case II & III: if d has no id -> id list list mapping, check for existence of id anywhere else
   locationTuple = exists_anywhere(id,d)
