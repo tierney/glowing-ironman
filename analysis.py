@@ -4,12 +4,12 @@ import sys
 import json
 import bz2
 
-#in retrospect, this task is like (not binary but b-)tree reconstruction given 
-#many nodes with pointers to children (retweet ids and ids). We could end up 
-#with many trees, of various degrees of bushiness and depth, and we have no idea 
-#which elements are the roots of each tree. But perhaps that approach would be 
-#better than lists of lists, as below, which represent paths to leaves from 
-#higher nodes that may or may not be roots. 
+#in retrospect, this task is like (not binary but b-)tree reconstruction given
+#many nodes with pointers to children (retweet ids and ids). We could end up
+#with many trees, of various degrees of bushiness and depth, and we have no idea
+#which elements are the roots of each tree. But perhaps that approach would be
+#better than lists of lists, as below, which represent paths to leaves from
+#higher nodes that may or may not be roots.
 
 #possibly super slow dumb way of doing this...
 def exists_anywhere(rid,d):
@@ -25,7 +25,7 @@ def exists_anywhere(rid,d):
         item = l[y]
         if item == rid:
           print "===Found a continuation in a retweet chain from id: " + str(rid) + "to id: " + "==="
-          #since we need to return to this location again to update it, 
+          #since we need to return to this location again to update it,
           #return a tuple to save time and spare us a second search
           #tell us key under which id exists, which list, which element of that list
           return (True, ids, x, y)
@@ -38,7 +38,7 @@ def update_key_mapping(id,rid,d):
   listoflists = d[rid]
   #id must be appended to mapping of rid as single element in its own list
   listoflists.append([[id]])
-        
+
 #given a location, go to that location and insert the retweet id either at end of an existing list
 #if possible, else as the terminal of a new list, reflecting a fork (branch) in a retweet flow
 def update_list_mapping(id,rid,d, locationTuple):
@@ -65,14 +65,13 @@ def update_list_mapping(id,rid,d, locationTuple):
 def update_pushkey_mapping(id,rid,d):
   print "\tupdate_pushkey_mapping..."
   #in this case a retweet rid is being retweeted in a more recent tweet with id, but our dictionary
-  #has id as a key (a starting point). So the key must be replaced by rid and id prepended to 
+  #has id as a key (a starting point). So the key must be replaced by rid and id prepended to
   #all the entries in the list of id lists, like so:
-  lists = d[id]
-  fixedlists = []
-  for l in lists:
-    fixedlists.append([id] + l)
+
+  # @paul: Is there a reason you were prepending the list?
+  d[rid] = [lst.append(id) for lst in d[id]]
+  assert (rid != id)
   del d[id]
-  d[rid] = fixedlists
 
 def update_dictionary(id, rid, d):
   #print "Updating the dictionary..."
@@ -155,5 +154,7 @@ def main(argv):
         printDictionary(outfile,d)
         raise KeyboardInterrupt
     printDictionary(outfile,d)
+
 if __name__=='__main__':
-  main(sys.argv)
+  import cProfile
+  cProfile.run('main(sys.argv)')
