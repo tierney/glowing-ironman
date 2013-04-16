@@ -113,6 +113,7 @@ def ProcessTweet(tweet, diction):
 #    print rid
     update_dictionary(id, rid, diction)
 
+#somewhat pretty print the dictionary
 def printDictionary(f, d):
   outfile = open(f,'w')
   keys = d.keys()
@@ -149,6 +150,7 @@ def main(argv):
       try:
         loaded = json.loads(line)
         ProcessTweet(loaded, d)
+      #print the dictionary to the out file even if we interrupt further progress
       except KeyboardInterrupt:
         printDictionary(outfile,d)
         raise KeyboardInterrupt
