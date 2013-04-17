@@ -104,16 +104,10 @@ def ProcessTweet(tweet, diction):
     id = tweet['id']
     #rid is the unique id of the tweet that is being retweeted
     rid = tweet['retweeted_status']['id']
-#    print "\n---PROCESSING A RETWEET ---"
-#    print " ID: "
-#    print id
-#    print " TIME: "
-#    print tweet['retweeted_status']['created_at']
-#    print ', RETWEET ID:',
-#    print rid
     update_dictionary(id, rid, diction)
 
-#somewhat pretty print the dictionary
+#somewhat pretty print the dictionary--had a bug, actually had lots of star 
+#topologies NOT chains in prior run
 def printDictionary(f, d):
   outfile = open(f,'w')
   keys = d.keys()
@@ -122,13 +116,31 @@ def printDictionary(f, d):
     outfile.write("\n")
     outfile.write(str(k))
     outfile.write(" ->\t")
-    for listchain in mapping:
+    max = len(mapping)
+    for x in range(max):
+      if x > 0: outfile.write("\n\t\t | ")
+      listchain = mapping[x]
       for elem in listchain:
         outfile.write(str(elem))
         outfile.write(", ")
-    outfile.write("\n\t\t | ")
   outfile.flush()
   outfile.close()
+
+#to screen version of above function
+def printDictionary_toScreen(d):
+  keys = d.keys()
+  for k in keys:
+    mapping = d[k]
+    print("\n")
+    print(str(k))
+    print(" ->\t")
+    max = len(mapping)
+    for x in range(max):
+      if x > 0: print " | "
+      listchain = mapping[x]
+      for elem in listchain:
+        print(str(elem))
+        print(", ")
 
 
 def main(argv):
@@ -153,6 +165,7 @@ def main(argv):
       #print the dictionary to the out file even if we interrupt further progress
       except KeyboardInterrupt:
         printDictionary(outfile,d)
+        exit()
         raise KeyboardInterrupt
     printDictionary(outfile,d)
 if __name__=='__main__':
