@@ -7,20 +7,16 @@ import datetime
 #Untested code
 #start using this soon rather than just tracking plain old tweet IDs
 class Node:
-  text
-  created
-  id
-  rid
+  def __init__(self):
+    self.text = ""
+    self.created = datetime.datetime.now()
+    self.id = 0
 
-  def setID(n):
-    id = n
-  def getID():
-    return id
-  def setRID(n):
-    rid = n
-  def getRID():
-    return rid
-
+  def setID(self, n):
+    self.id = n
+  def getID(self):
+    return self.id
+  @staticmethod
   def stringMonth2int(s):
     if s == "Jan": return 1
     if s == "Feb": return 2
@@ -36,30 +32,37 @@ class Node:
     if s == "Dec": return 12
     return 13 #this will cause a failure
 
-  def setCreatedTime(s):
+  def setCreatedTime(self,s):
     #Mon Mar 11 15:30:27 +0000 2013 -> datetime object
     slist = s.split(" ")
     #year, month, day[, hour[, minute[, second[, microsecond[, tzinfo]]]]]
     timelist = slist[3].split(":")
-    dateANDtime = datetime.datetime.datetime(int(slist[5]), stringMonth2int(slist[1]), int(slist[2]), int(timelist[0]), int(timelist[1]), int(timelist[2]))
+    dateANDtime = datetime.datetime(int(slist[5]), Node.stringMonth2int(slist[1]), int(slist[2]), int(timelist[0]), int(timelist[1]), int(timelist[2]))
+    created = dateANDtime
+
+  def getCreatedTime(self):
+    return self.dateANDtime
     
-    def setText(s): 
-      text = s
+  def setText(self,s): 
+    self.text = s
+  def getText(self):
+    return self.text
 
 class DriverIDsOnly:
   #id -> set of id  map, like a set of production rules
   #id -> [id,id...]
   #id -> [id]
   #...
-  id2sets = dict()
-  #set of all entries;determining if an id is a root or not requires we either 
-  #search all mappings to determine if we've ever seen it, or maintain some 
-  #way of answering that question
-  universe = set()
-  #set of roots
-  rootset = set()
+  def __init__(self):
+    self.id2sets = dict()
+    #set of all entries;determining if an id is a root or not requires we either 
+    #search all mappings to determine if we've ever seen it, or maintain some 
+    #way of answering that question
+    self.universe = set()
+    #set of roots
+    self.rootset = set()
 
-  def update_mappings(id,rid):
+  def update_mappings(self,id,rid):
     if rid in id2sets:
       #add to set (branch in flow), & add it to set of all know id's (so we know
       #it is not a root in future)
@@ -78,35 +81,35 @@ class DriverIDsOnly:
         universe.add(rid)
       universe.add(id)
 
-  def ProcessTweet(tweet, diction):
+  def ProcessTweet(self, tweet, diction):
     if 'retweeted_status' in tweet.keys():
       #id is is unique id of this tweet, a retweet of a prior tweet
       id = tweet['id']
       #rid is the unique id of the tweet that is being retweeted
       rid = tweet['retweeted_status']['id']
-      update_mappings(id, rid, diction)
+      self.update_mappings(id, rid, diction)
 
 
   #somewhat pretty print the dictionary--fixed bug from prior file
-  def printDictionary(f, d):
-  outfile = open(f,'w')
-  keys = d.keys()
-  for k in keys:
-    mapping = d[k]
-    outfile.write("\n")
-    outfile.write(str(k))
-    outfile.write(" ->\t")
-    max = len(mapping)
-    for x in range(max):
-      if x > 0: print "\n\t\t | "
-      listchain = mapping[x]
-      for elem in listchain:
-        outfile.write(str(elem))
-        outfile.write(", ")
-  outfile.flush()
-  outfile.close()
+  def printDictionary(self, f, d):
+    outfile = open(f,'w')
+    keys = d.keys()
+    for k in keys:
+      mapping = d[k]
+      outfile.write("\n")
+      outfile.write(str(k))
+      outfile.write(" ->\t")
+      max = len(mapping)
+      for x in range(max):
+        if x > 0: print "\n\t\t | "
+        listchain = mapping[x]
+        for elem in listchain:
+          outfile.write(str(elem))
+          outfile.write(", ")
+    outfile.flush()
+    outfile.close()
 
-  def printDictionary_toScreen(d):
+  def printDictionary_toScreen(self, d):
     keys = d.keys()
     for k in keys:
       mapping = d[k]
@@ -121,26 +124,27 @@ class DriverIDsOnly:
           print(str(elem))
           print(", ")
 
-  def process_TweetsFromFile(fnout, outfile):
+  def process_TweetsFromFile(self, fnout, outfile):
   # Figure out which function should open the file.
-  fopen = open
-  if fnout.endswith('.bz2'):
-    fopen = bz2.BZ2File
+    fopen = open
+    if fnout.endswith('.bz2'):
+      fopen = bz2.BZ2File
 
-  with fopen(fnout, 'rb') as fh:
-    # Process every line as its own JSON tweet.
-    for line in fh:
-      try:
-        loaded = json.loads(line)
-        ProcessTweet(loaded, d)
+    with fopen(fnout, 'rb') as fh:
+      # Process every line as its own JSON tweet.
+      for line in fh:
+        try:
+          loaded = json.loads(line)
+          self.ProcessTweet(loaded, d)
       #print the dictionary to out file even if we interrupt further progress
-      except KeyboardInterrupt:
-        printDictionary(outfile,d)
-        raise KeyboardInterrupt
-    printDictionary(outfile,d)
-
+        except KeyboardInterrupt:
+          self.printDictionary(outfile,d)
+          return
+          raise KeyboardInterrupt
+        self.printDictionary(outfile,d)
+        
   #incase have to 2 go to file to get it, but this would be slow
-  def getTweetText(id, f):
+  def getTweetText(self, id, f):
     for line in f:
       if 'id' in tweet.keys():
         tid = tweet['id']
@@ -150,78 +154,98 @@ class DriverIDsOnly:
 
 
 class DriverNodes:
-  #id -> set of id  map, like a set of production rules
-  #id -> [id,id...]
-  #id -> [id]
+  #node -> set of node   map, like a set of production rules
+  #node -> [node,node...]
+  #node -> [node]
   #...
-  id2sets = dict()
-  #set of all entries;determining if an id is a root or not requires we either 
-  #search all mappings to determine if we've ever seen it, or maintain some 
-  #way of answering that question
-  universe = set()
-  #set of roots
-  rootset = set()
+  def __init__(self):
+    self.n2sets = dict()
+    #set of all entries;determining if an id is a root or not requires we either 
+    #search all mappings to determine if we've ever seen it, or maintain some 
+    #way of answering that question
+    self.universe = set()
+    #set of roots
+    self.rootset = set()
 
-  def update_mappings(n):
-    if n.rid in id2sets:
-      #add to set (branch in flow), & add it to set of all know id's (so we know
-      #it is not a root in future)
-      id2sets[rid] = id2sets[rid].add(id)
-      universe.add(id)
+  #rt is retweetED tweet, t is (re)tweet, mapping is from tweet -> set of tweet
+  #where retweetED tweet rt is root, (re)tweet t is in set
+  def update_mappings(self, rt, t):
+    if rt in self.n2sets:
+      #add t to set (branch in flow), & add t to set of all know tweets (so we know
+      #t is not a root in future)
+      self.n2sets[rt] = self.n2sets[rt].add(t)
+      self.universe.add(t)
     else:
       #add to keys and start new mapping (continuation of a flow), and make note
       #of it being a new root & add it to set of all known id's (next 3 lines
       #fail if attempted as 1 line)
-      temps = id2sets[rid]
-      temps.add(id)
-      id2sets[rid] = temps
+      temps = set()
+      temps.add(t)
+      self.n2sets[rt] = temps
       #check for pre-existence in any set and add to set of roots if it is new
-      if rid not in universe:
-        rootset.add(rid)
-        universe.add(rid)
-      universe.add(id)
+      if rt not in self.universe:
+        self.rootset.add(rt)
+        self.universe.add(rt)
+      self.universe.add(t)
 
-  def ProcessTweet(tweet, diction):
+  def ProcessTweet(self, tweet):
     if 'retweeted_status' in tweet.keys():
-      #id is is unique id of this tweet, a retweet of a prior tweet
+      #id is unique id of this tweet, a retweet of a prior tweet
       id = tweet['id']
       tweettext = tweet['text']
       td = tweet['created_at']
+      n_tweet = Node()
+      n_tweet.setID(id)
+      n_tweet.setText(tweettext)
+      n_tweet.setCreatedTime(td)
+      #-----------------
+      n_retweeted = Node()
       #rid is the unique id of the tweet that is being retweeted
       rid = tweet['retweeted_status']['id']
-      n = Node()
-      n.setText(tweettext)
-      n.setID(id)
-      n.setRID(rid)
-      n.setCreatedTime(td)
-      update_mappings(n, diction)
+      retweetedtext = tweet['retweeted_status']['text']
+      td_retweeted = tweet['retweeted_status']['created_at']
+      n_retweeted.setID(rid)
+      n_retweeted.setText(retweetedtext)
+      n_retweeted.setCreatedTime(td_retweeted)
+      #-------------------
+      self.update_mappings(n_retweeted, n_tweet)
 
 
   #somewhat pretty print the dictionary--fixed bug from prior file
-  def printDictionary(f, d):
-  outfile = open(f,'w')
-  keys = d.keys()
-  for k in keys:
-    mapping = d[k]
-    outfile.write("\n")
-    outfile.write(str(k))
-    outfile.write(" ->\t")
-    max = len(mapping)
-    for x in range(max):
-      if x > 0: print "\n\t\t | "
-      listchain = mapping[x]
-      for elem in listchain:
-        outfile.write(str(elem))
-        outfile.write(", ")
-  outfile.flush()
-  outfile.close()
-
-  def printDictionary_toScreen(d):
-    keys = d.keys()
+  def printDictionary(self, f):
+    outfile = open(f,'w')
+    keys = self.n2sets.keys()
     for k in keys:
-      mapping = d[k]
+      theset = d[k]
+      outfile.write("\n")
+      outfile.write(str(k.getID))
+      outfile.write("  ")
+      outfile.write(str(k.getCreatedTime))
+      outfile.write("  ")
+      outfile.write(str(k.getText))
+      outfile.write("  ->  ")
+      max = len(theset)
+      for x in range(max):
+        if x > 0: print "\n\t\t | "
+        altnode = mapping[x]
+        outfile.write(str(altnode.getID))
+        outfile.write("  ")
+        outfile.write(str(altnode.getCreatedTime))
+        outfile.write("  ")
+        outfile.write(str(altnode.getText))
+    outfile.flush()
+    outfile.close()
+
+  def printMappings_toScreen(self, m):
+    keys = m.keys()
+    for k in keys:
+      mapping = m[k]
       print("\n")
-      print(str(k))
+      print(str(k.getID))
+      print("  ")
+      print(str(k.getCreatedTime))
+      print("  ")
+      print(str(k.getText))
       print(" ->\t")
       max = len(mapping)
       for x in range(max):
@@ -231,23 +255,23 @@ class DriverNodes:
           print(str(elem))
           print(", ")
 
-  def process_TweetsFromFile(fnout, outfile):
-  # Figure out which function should open the file.
-  fopen = open
-  if fnout.endswith('.bz2'):
-    fopen = bz2.BZ2File
-
-  with fopen(fnout, 'rb') as fh:
-    # Process every line as its own JSON tweet.
-    for line in fh:
-      try:
-        loaded = json.loads(line)
-        ProcessTweet(loaded, d)
+  def process_TweetsFromFile(self, ignore, fnout, outfile):
+    # Figure out which function should open the file.
+    fopen = open
+    if fnout.endswith('.bz2'):
+      fopen = bz2.BZ2File
+      
+      with fopen(fnout, 'rb') as fh:
+        # Process every line as its own JSON tweet.
+        for line in fh:
+          try:
+            loaded = json.loads(line)
+            self.ProcessTweet(loaded)
       #print the dictionary to out file even if we interrupt further progress
-      except KeyboardInterrupt:
-        printDictionary(outfile,d)
-        raise KeyboardInterrupt
-    printDictionary(outfile,d)
+          except KeyboardInterrupt:
+            self.printDictionary(outfile)
+            raise KeyboardInterrupt
+      self.printDictionary(outfile)
 
   #incase have to 2 go to file to get it, but this would be slow
   def getTweetText(id, f):
@@ -259,11 +283,11 @@ class DriverNodes:
             return tweet['text']
   
 def main(argv):
-  driver = Driver()
+  driver = DriverNodes()
   #First argument is the data file to read.
   #Second argument is the data file to which to write upon completion or 
   #interruption
-  process_TweetsFromFile(argv[1],argv[2])
+  driver.process_TweetsFromFile(driver, argv[1],argv[2])
 
 
 if __name__=='__main__':
