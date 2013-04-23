@@ -225,6 +225,7 @@ class DriverNodes:
       outfile.write("  ")
       outfile.write(str(k.getCreatedTime()))
       outfile.write("  ")
+      #fails to handle unicode b/c I didn't code it up yet
       outfile.write(str(k.getText()))
       outfile.write("  ->  ")
       x = 0
