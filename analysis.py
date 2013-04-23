@@ -38,10 +38,10 @@ class Node:
     #year, month, day[, hour[, minute[, second[, microsecond[, tzinfo]]]]]
     timelist = slist[3].split(":")
     dateANDtime = datetime.datetime(int(slist[5]), Node.stringMonth2int(slist[1]), int(slist[2]), int(timelist[0]), int(timelist[1]), int(timelist[2]))
-    created = dateANDtime
+    self.created = dateANDtime
 
   def getCreatedTime(self):
-    return self.dateANDtime
+    return self.created
     
   def setText(self,s): 
     self.text = s
@@ -63,49 +63,47 @@ class DriverIDsOnly:
     self.rootset = set()
 
   def update_mappings(self,id,rid):
-    if rid in id2sets:
+    if rid in self.id2sets:
       #add to set (branch in flow), & add it to set of all know id's (so we know
       #it is not a root in future)
-      id2sets[rid] = id2sets[rid].add(id)
-      universe.add(id)
+      self.id2sets[rid] = self.id2sets[rid].add(id)
+      self.universe.add(id)
     else:
       #add to keys and start new mapping (continuation of a flow), and make note
       #of it being a new root & add it to set of all known id's (next 3 lines
       #fail if attempted as 1 line)
-      temps = id2sets[rid]
+      temps = set()
       temps.add(id)
-      id2sets[rid] = temps
+      self.id2sets[rid] = temps
       #check for pre-existence in any set and add to set of roots if it is new
-      if rid not in universe:
-        rootset.add(rid)
-        universe.add(rid)
-      universe.add(id)
+      if rid not in self.universe:
+        self.rootset.add(rid)
+        self.universe.add(rid)
+      self.universe.add(id)
 
-  def ProcessTweet(self, tweet, diction):
+  def ProcessTweet(self, tweet):
     if 'retweeted_status' in tweet.keys():
       #id is is unique id of this tweet, a retweet of a prior tweet
       id = tweet['id']
       #rid is the unique id of the tweet that is being retweeted
       rid = tweet['retweeted_status']['id']
-      self.update_mappings(id, rid, diction)
+      self.update_mappings(id, rid)
 
 
   #somewhat pretty print the dictionary--fixed bug from prior file
-  def printDictionary(self, f, d):
+  def printDictionary(self, f):
     outfile = open(f,'w')
-    keys = d.keys()
+    keys = self.id2sets.keys()
     for k in keys:
-      mapping = d[k]
+      mapping = self.id2sets[k]
       outfile.write("\n")
-      outfile.write(str(k))
-      outfile.write(" ->\t")
-      max = len(mapping)
-      for x in range(max):
+      outfile.write(k)
+      outfile.write("  ->  ")
+      x = 0
+      for id in mapping:
         if x > 0: print "\n\t\t | "
-        listchain = mapping[x]
-        for elem in listchain:
-          outfile.write(str(elem))
-          outfile.write(", ")
+        outfile.write(str(altnode.getID()))
+        outfile.write(id)
     outfile.flush()
     outfile.close()
 
@@ -114,15 +112,20 @@ class DriverIDsOnly:
     for k in keys:
       mapping = d[k]
       print("\n")
-      print(str(k))
-      print(" ->\t")
-      max = len(mapping)
-      for x in range(max):
-        if x > 0: print " | "
-        listchain = mapping[x]
-        for elem in listchain:
-          print(str(elem))
-          print(", ")
+      print(str(k.getID()))
+      print("  ")
+      print(str(k.getCreatedTime()))
+      print("  ")
+      print(str(k.getText()))
+      print(" -> ")
+      x = 0
+      for altnode in mapping:
+        if x > 0: print "\n\t| "
+        print(str(k.getID()))
+        print("  ")
+        print(str(k.getCreatedTime()))
+        print("  ")
+        print(str(k.getText()))
 
   def process_TweetsFromFile(self, fnout, outfile):
   # Figure out which function should open the file.
@@ -135,13 +138,13 @@ class DriverIDsOnly:
       for line in fh:
         try:
           loaded = json.loads(line)
-          self.ProcessTweet(loaded, d)
+          self.ProcessTweet(loaded)
       #print the dictionary to out file even if we interrupt further progress
         except KeyboardInterrupt:
-          self.printDictionary(outfile,d)
+          self.printDictionary(outfile)
           return
           raise KeyboardInterrupt
-        self.printDictionary(outfile,d)
+        self.printDictionary(outfile)
         
   #incase have to 2 go to file to get it, but this would be slow
   def getTweetText(self, id, f):
@@ -216,44 +219,45 @@ class DriverNodes:
     outfile = open(f,'w')
     keys = self.n2sets.keys()
     for k in keys:
-      theset = d[k]
+      theset = self.n2sets[k]
       outfile.write("\n")
-      outfile.write(str(k.getID))
+      outfile.write(str(k.getID()))
       outfile.write("  ")
-      outfile.write(str(k.getCreatedTime))
+      outfile.write(str(k.getCreatedTime()))
       outfile.write("  ")
-      outfile.write(str(k.getText))
+      outfile.write(str(k.getText()))
       outfile.write("  ->  ")
-      max = len(theset)
-      for x in range(max):
+      x = 0
+      for altnode in theset:
         if x > 0: print "\n\t\t | "
-        altnode = mapping[x]
-        outfile.write(str(altnode.getID))
+        outfile.write(str(altnode.getID()))
         outfile.write("  ")
-        outfile.write(str(altnode.getCreatedTime))
+        outfile.write(str(altnode.getCreatedTime()))
         outfile.write("  ")
-        outfile.write(str(altnode.getText))
+        outfile.write(str(altnode.getText()))
     outfile.flush()
     outfile.close()
 
   def printMappings_toScreen(self, m):
     keys = m.keys()
     for k in keys:
-      mapping = m[k]
+      theset = m[k]
       print("\n")
-      print(str(k.getID))
+      print(str(k.getID()))
       print("  ")
-      print(str(k.getCreatedTime))
+      print(str(k.getCreatedTime()))
       print("  ")
-      print(str(k.getText))
-      print(" ->\t")
-      max = len(mapping)
+      print(str(k.getText()))
+      print(" -> ")
+      max = len(theset)
       for x in range(max):
-        if x > 0: print " | "
-        listchain = mapping[x]
-        for elem in listchain:
-          print(str(elem))
-          print(", ")
+        if x > 0: print "\n\t| "
+        altnode = theset[x]
+        print(str(k.getID()))
+        print("  ")
+        print(str(k.getCreatedTime()))
+        print("  ")
+        print(str(k.getText()))
 
   def process_TweetsFromFile(self, ignore, fnout, outfile):
     # Figure out which function should open the file.
