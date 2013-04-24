@@ -42,8 +42,8 @@ class Node:
 
   def getCreatedTime(self):
     return self.created
-    
-  def setText(self,s): 
+
+  def setText(self,s):
     self.text = s
   def getText(self):
     return self.text
@@ -55,8 +55,8 @@ class DriverIDsOnly:
   #...
   def __init__(self):
     self.id2sets = dict()
-    #set of all entries;determining if an id is a root or not requires we either 
-    #search all mappings to determine if we've ever seen it, or maintain some 
+    #set of all entries;determining if an id is a root or not requires we either
+    #search all mappings to determine if we've ever seen it, or maintain some
     #way of answering that question
     self.universe = set()
     #set of roots
@@ -145,7 +145,7 @@ class DriverIDsOnly:
           return
           raise KeyboardInterrupt
         self.printDictionary(outfile)
-        
+
   #incase have to 2 go to file to get it, but this would be slow
   def getTweetText(self, id, f):
     for line in f:
@@ -163,8 +163,8 @@ class DriverNodes:
   #...
   def __init__(self):
     self.n2sets = dict()
-    #set of all entries;determining if an id is a root or not requires we either 
-    #search all mappings to determine if we've ever seen it, or maintain some 
+    #set of all entries;determining if an id is a root or not requires we either
+    #search all mappings to determine if we've ever seen it, or maintain some
     #way of answering that question
     self.universe = set()
     #set of roots
@@ -225,8 +225,11 @@ class DriverNodes:
       outfile.write("  ")
       outfile.write(str(k.getCreatedTime()))
       outfile.write("  ")
-      #fails to handle unicode b/c I didn't code it up yet
-      outfile.write(str(k.getText()))
+
+      # TODO(paul): Test if this solves the unicode problem.
+      content = k.getText()
+      outfile.write(content.encode('utf-8'))
+
       outfile.write("  ->  ")
       x = 0
       for altnode in theset:
@@ -265,7 +268,7 @@ class DriverNodes:
     fopen = open
     if fnout.endswith('.bz2'):
       fopen = bz2.BZ2File
-      
+
       with fopen(fnout, 'rb') as fh:
         # Process every line as its own JSON tweet.
         for line in fh:
@@ -286,11 +289,11 @@ class DriverNodes:
         if id == tid:
           if 'text' in tweet.keys():
             return tweet['text']
-  
+
 def main(argv):
   driver = DriverNodes()
   #First argument is the data file to read.
-  #Second argument is the data file to which to write upon completion or 
+  #Second argument is the data file to which to write upon completion or
   #interruption
   driver.process_TweetsFromFile(driver, argv[1],argv[2])
 
